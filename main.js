@@ -106,7 +106,7 @@ function gitPullCommand(pullCommand) { // git pull
 
 function gitCommitCommand(commitCommand) { // git commit -am "thing"
     
-// check if a git repo has initted yet
+    // check if a git repo has initted yet
     if (!(ifGitRepoMade())) {return;}
     
     if (untrackedFiles) { // quit if there are untracked files
@@ -261,9 +261,6 @@ function gitRemoteCommand(remoteCommand) {
 }
 
 function gitCloneCommand(cloneCommand) {
-    
-    // check if a git repo has initted yet
-    if (!(ifGitRepoMade())) {return;}
     
     // get rid of any blanks
     cloneCommand = removeSpaces(cloneCommand)
