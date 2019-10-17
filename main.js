@@ -16,13 +16,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 
-var term = new Terminal();
+var term = new window.Terminal.Terminal();
 term.open(document.getElementById('terminal'));
 
 const gitCommands = ['git init', 'git clone', 'git remote',
-'git status', 'git add', 'git commit', 'git pull', 'git push', 'git help'];
+'git status', 'git add', 'git commit', 'git pull', 'git push', 'git log', 'git help'];
 var remoteURLs = [];
 var remoteNames = [];
+var commitsList = [];
 
 var noCommitsYet = true
 var untrackedFiles = true
@@ -70,7 +71,7 @@ function gitPushCommand(pushCommand) { // git push origin master
     // get rid of any blanks
     pushCommand = removeSpaces(pushCommand)
 
-    if (!(pushCommand.length === 4)) { //  only 4 words
+    if (pushCommand.length < 4) { //  at least 4 words
         term.writeln('');
         term.writeln('Invalid argument!');
         return;
@@ -140,6 +141,14 @@ function gitCommitCommand(commitCommand) { // git commit -am "thing"
     term.writeln(' ');
     term.writeln('Commited');
     term.writeln('[' + commitId + ']' + ' ' + commitMessage);
+
+
+
+    commitsList.push(commitId);
+    commitsList.push(commitMessage);
+
+
+
     return;
 
 }
@@ -281,7 +290,22 @@ function gitCloneCommand(cloneCommand) {
     term.writeln("remote: Compressing objects...");
     term.writeln("Receiving objects...");
     term.writeln("Resolving deltas...");
-    term.writeln("Done"); 
+    term.writeln("Done");
+
+    madeGitRepo = true;
+}
+
+function gitLogCommand(logCommand) {
+
+    console.log(commitsList);
+    term.writeln(' ')
+
+    for (let i = commitsList.length - 1; i >= 0; i -= 2) {
+        var commitId = commitsList[i];
+        var commitMsg = commitsList[i - 1];
+
+        term.writeln('[' + commitId + ']' + ' ' + commitMsg);
+    }
 }
 
 function gitResponse(command) {
@@ -293,10 +317,10 @@ function gitResponse(command) {
     
     if (commandIndex === 0) {
         // git init
-        //console.log('Initialized empty Git repository')
         term.writeln('')
         term.writeln('Initialized empty Git repository')
         madeGitRepo = true
+        commitsList = [];
     }
     else if (commandIndex === 1) {
         // git clone https://github.com/turtlecoin/turtlecoin
@@ -330,9 +354,12 @@ function gitResponse(command) {
         // git push orign master
         var pushCommand = command.split(' ')
         gitPushCommand(pushCommand)
-    } else if (commandIndex === 8) { 
+    } else if (commandIndex === 8) { // git log
+        var logCommand = command.split(' ')
+        gitLogCommand(logCommand);
+    } else if (commandIndex === 9) { 
         // git help
-        term.writeln('');
+        term.writeln('\n');
         term.writeln('Available commands:');
         term.writeln('git init');
         term.writeln('git clone');
@@ -343,6 +370,8 @@ function gitResponse(command) {
         term.writeln('git pull');
         term.writeln('git push');
         term.writeln('git help');
+        term.writeln('\n');
+        term.writeln('Note: to paste, press Shift + Insert');
         return;
     }
 }
@@ -356,12 +385,19 @@ function runGitTerminal() {
 
     term.writeln('Welcome to the Git terminal!');
     term.writeln('');
-    term.prompt();
+    prompt(term);
 
-    term.on('key', function(key, ev) {
+    term.onData( ev => {
         const printable = !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey;
 
-        if (ev.keyCode === 13) { // enter
+        console.log(ev);
+        key = ev;
+
+        keyCode = ev.charCodeAt(0);
+
+        console.log(word);
+
+        if (keyCode === 13) { // enter
 
             var gitCommand = word.split(' ')
             gitCommand = gitCommand[0] + ' ' + gitCommand[1]
@@ -370,12 +406,13 @@ function runGitTerminal() {
                 gitResponse(word)
             }
             
-            term.prompt();
+            prompt(term);
             word = "";
-        } else if (ev.keyCode === 8) { // backspace
+        } else if (keyCode === 8) { // backspace
             // Do not delete the prompt
             if (term._core.buffer.x > 2) {
                 term.write('\b \b');
+                // this.child.write('\x1b[D');
             }
             word = word.slice(0, -1); // remove last character from word
         } else if (printable) {
@@ -384,9 +421,13 @@ function runGitTerminal() {
         }
     });
 
-    term.on('paste', function(data) {
-        term.write(data);
-        word += data;
-    });
+    function prompt(term) {
+        term.write('\r\n$ ');
+    }
+
+    // term.onPaste( e => {
+    //     term.write(data);
+    //     word += data;
+    // });
 }
 runGitTerminal();
