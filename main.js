@@ -368,6 +368,7 @@ function gitResponse(command) {
         term.writeln('git commit');
         term.writeln('git pull');
         term.writeln('git push');
+        term.writeln('git log');
         term.writeln('git help');
         term.writeln('\n');
         term.writeln('Note: to paste, press Shift + Insert');
