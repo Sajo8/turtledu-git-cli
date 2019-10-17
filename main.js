@@ -297,7 +297,6 @@ function gitCloneCommand(cloneCommand) {
 
 function gitLogCommand(logCommand) {
 
-    console.log(commitsList);
     term.writeln(' ')
 
     for (let i = commitsList.length - 1; i >= 0; i -= 2) {
@@ -390,12 +389,8 @@ function runGitTerminal() {
     term.onData( ev => {
         const printable = !ev.altKey && !ev.altGraphKey && !ev.ctrlKey && !ev.metaKey;
 
-        console.log(ev);
         key = ev;
-
         keyCode = ev.charCodeAt(0);
-
-        console.log(word);
 
         if (keyCode === 13) { // enter
 
@@ -408,11 +403,10 @@ function runGitTerminal() {
             
             prompt(term);
             word = "";
-        } else if (keyCode === 8) { // backspace
+        } else if (keyCode === 127) { // backspace
             // Do not delete the prompt
             if (term._core.buffer.x > 2) {
                 term.write('\b \b');
-                // this.child.write('\x1b[D');
             }
             word = word.slice(0, -1); // remove last character from word
         } else if (printable) {
